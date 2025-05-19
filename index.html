@@ -1,72 +1,145 @@
-﻿<html>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-<title>연습용 페이지</title>
+    <meta charset="UTF-8">
+    <title>자세 판별 AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(to bottom, #e3f2fd, #ffffff);
+            text-align: center;
+            padding: 40px;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: #0d47a1;
+            margin-bottom: 10px;
+        }
+
+        p.description {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        #start-button {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        #start-button:hover {
+            background-color: #0d47a1;
+        }
+
+        #webcam-container {
+            margin: 0 auto;
+            width: 220px;
+            height: 220px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border: 3px solid #64b5f6;
+        }
+
+        #label-container {
+            margin-top: 20px;
+        }
+
+        #label-container div {
+            background-color: #ffffff;
+            margin: 8px auto;
+            padding: 10px;
+            width: 220px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            font-size: 14px;
+        }
+
+        #result-message {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+    </style>
 </head>
 <body>
-안녕하세요, 반갑습니다. ㅎㅎ
-<h1>h1입니다</h1>
-<h4>h4입니다</h4>
-<p>p문입니다.</p>
 
-  <div>Teachable Machine Image Model</div>
-<button type="button" onclick="init()">Start</button>
-<div id="webcam-container"></div>
-<div id="label-container"></div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-<script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+    <h1>자세 판별 인공지능</h1>
+    <p class="description">이 인공지능은 <strong>좋은 자세(Good)</strong>와 <strong>나쁜 자세(Bad)</strong>를 식별합니다.</p>
+    <button id="start-button" onclick="init()">AI 시작하기</button>
 
-    // the link to your model provided by Teachable Machine export panel
-    const URL = "https://teachablemachine.withgoogle.com/models/HaKmA4Rld/";
+    <div id="webcam-container"></div>
+    <div id="label-container"></div>
+    <div id="result-message"></div>
 
-    let model, webcam, labelContainer, maxPredictions;
+    <script type="text/javascript">
+        const URL = "https://teachablemachine.withgoogle.com/models/HaKmA4Rld/";
+        let model, webcam, labelContainer, maxPredictions;
 
-    // Load the image model and setup the webcam
-    async function init() {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
 
-        // load the model and metadata
-        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-        // or files from your local hard drive
-        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
 
-        // Convenience function to setup a webcam
-        const flip = true; // whether to flip the webcam
-        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-        await webcam.setup(); // request access to the webcam
-        await webcam.play();
-        window.requestAnimationFrame(loop);
+            webcam = new tmImage.Webcam(220, 220, true);
+            await webcam.setup();
+            await webcam.play();
+            window.requestAnimationFrame(loop);
 
-        // append elements to the DOM
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-        labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
-            labelContainer.appendChild(document.createElement("div"));
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) {
+                labelContainer.appendChild(document.createElement("div"));
+            }
         }
-    }
 
-    async function loop() {
-        webcam.update(); // update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
-
-    // run the webcam image through the image model
-    async function predict() {
-        // predict can take in an image, video or canvas html element
-        const prediction = await model.predict(webcam.canvas);
-        for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
+        async function loop() {
+            webcam.update();
+            await predict();
+            window.requestAnimationFrame(loop);
         }
-    }
-</script>
+
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            let goodProb = 0;
+            let badProb = 0;
+
+            for (let i = 0; i < maxPredictions; i++) {
+                const className = prediction[i].className;
+                const probability = prediction[i].probability;
+                const displayText = `${className}: ${(probability * 100).toFixed(1)}%`;
+                labelContainer.childNodes[i].innerHTML = displayText;
+
+                if (className.toLowerCase().includes("good")) goodProb = probability;
+                if (className.toLowerCase().includes("bad")) badProb = probability;
+            }
+
+            const resultDiv = document.getElementById("result-message");
+            if (goodProb > 0.5) {
+                resultDiv.innerText = "좋은 자세 👍";
+                resultDiv.style.color = "#2e7d32"; // green
+            } else if (badProb > 0.5) {
+                resultDiv.innerText = "안좋은 자세 ⚠️";
+                resultDiv.style.color = "#d32f2f"; // red
+            } else {
+                resultDiv.innerText = "";
+            }
+        }
+    </script>
 
 </body>
 </html>
