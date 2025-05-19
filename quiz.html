@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 안의 또 다른 나</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #fff8fc;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+    .question-box {
+      display: none;
+      margin-bottom: 30px;
+      border: 2px solid #ffaad4;
+      border-radius: 15px;
+      padding: 20px;
+      background-color: #ffe2f0;
+    }
+    .question-box.active {
+      display: block;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #ffaad4;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      font-family: 'Nanum Gothic Coding', monospace;
+      font-weight: 700;
+    }
+    #result {
+      display: none;
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #ffeef8;
+      border-radius: 20px;
+    }
+    #result h2 {
+      font-size: 24px;
+    }
+    #result img {
+      width: 200px;
+      margin-top: 20px;
+    }
+    #retry-btn {
+      margin-top: 30px;
+      background-color: #d48dd4;
+    }
+  </style>
+</head>
+<body>
+  <h1>✨ 당신의 내면 자아 테스트 ✨</h1>
+
+  <div id="quiz"></div>
+
+  <div id="result">
+    <h2 id="result-title"></h2>
+    <p id="result-description"></p>
+    <img id="result-image" src="" alt="결과 이미지">
+    <br>
+    <button id="retry-btn" onclick="restartQuiz()">다시 풀기</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "아침에 눈을 떴을 때 가장 먼저 드는 생각은?",
+        a: ["더 자고 싶다", "오늘은 뭘 하지?", "핸드폰 어디 갔지?", "나 지금 꿈이야?"]
+      },
+      {
+        q: "친구가 고민을 털어놓을 때 당신의 반응은?",
+        a: ["함께 울어준다", "현실적인 해결책을 준다", "그냥 넘긴다", "속으로만 반응"]
+      },
+      {
+        q: "1억 원이 생기면?",
+        a: ["저축", "여행", "쇼핑", "창업"]
+      },
+      {
+        q: "친구들 사이에서 나는?",
+        a: ["분위기 메이커", "조용한 참견러", "리더", "막내"]
+      },
+      {
+        q: "이상형은?",
+        a: ["나만 바라보는 사람", "자극 주는 사람", "편안한 사람", "같이 미친 사람"]
+      }
+    ];
+
+    const results = [
+      {
+        title: "🌟 감성 주인공형",
+        desc: "감정에 충실하고 분위기를 이끄는 감성 충만한 당신! 드라마 속 주인공이 어울려요.",
+        img: "https://i.imgur.com/N5uCbDu.png"
+      },
+      {
+        title: "💪 이성적인 전략가형",
+        desc: "현실적인 조언과 계획을 잘하는 전략가! 상황을 빠르게 파악하고 해결하죠.",
+        img: "https://i.imgur.com/Oc9aMwP.png"
+      },
+      {
+        title: "✨ 엉뚱발랄 막내형",
+        desc: "기발한 상상력과 톡톡 튀는 매력의 소유자! 분위기를 환기하는 귀여운 존재예요.",
+        img: "https://i.imgur.com/6T2zkEU.png"
+      },
+      {
+        title: "🐈 무심한 관찰자형",
+        desc: "겉은 시크하지만 내면은 따뜻한 냥이 같은 사람! 조용히 사람들을 바라보죠.",
+        img: "https://i.imgur.com/rAKT7zI.png"
+      }
+    ];
+
+    const quiz = document.getElementById("quiz");
+    let current = 0;
+    let score = [0, 0, 0, 0];
+
+    function showQuestion(index) {
+      const qBox = document.createElement("div");
+      qBox.className = "question-box active";
+      qBox.innerHTML = `<h2>Q${index + 1}. ${questions[index].q}</h2>`;
+      questions[index].a.forEach((choice, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = choice;
+        btn.onclick = () => {
+          score[i]++;
+          qBox.remove();
+          current++;
+          if (current < questions.length) {
+            showQuestion(current);
+          } else {
+            showResult();
+          }
+        };
+        qBox.appendChild(btn);
+      });
+      quiz.appendChild(qBox);
+    }
+
+    function showResult() {
+      const max = score.indexOf(Math.max(...score));
+      document.getElementById("result-title").textContent = results[max].title;
+      document.getElementById("result-description").textContent = results[max].desc;
+      document.getElementById("result-image").src = results[max].img;
+      document.getElementById("result").style.display = "block";
+    }
+
+    function restartQuiz() {
+      current = 0;
+      score = [0, 0, 0, 0];
+      quiz.innerHTML = "";
+      document.getElementById("result").style.display = "none";
+      showQuestion(current);
+    }
+
+    showQuestion(current);
+  </script>
+</body>
+</html>
